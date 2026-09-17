@@ -34,13 +34,12 @@
 </head>
 <body>
 
-    <!-- TELA INICIAL -->
     <div id="lobby-screen">
         <h1>Batalha de Ovos (3 Jogadores) 🥚</h1>
         <div id="menu-principal">
             <button onclick="criarSala()">Criar Sala (Host)</button>
             <p style="margin: 10px 0; color: #95a5a6;">ou</p>
-            <input type="text" id="codigo-input" placeholder="Código do Host" maxlength="10">
+            <input type="text" id="codigo-input" placeholder="Código do Host" maxlength="30">
             <br>
             <button onclick="entrarSala()">Entrar na Sala</button>
         </div>
@@ -51,7 +50,6 @@
         </div>
     </div>
 
-    <!-- TELA DO JOGO -->
     <div id="game-screen">
         <div id="header">
             <div id="timer">10</div>
@@ -70,19 +68,18 @@
         </div>
     </div>
 
-    <!-- BIBLIOTECA PEERJS -->
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     
     <script>
         let peer;
-        let conns = []; // Lista de conexões (usado se for o Host)
-        let hostConn;   // Conexão com o Host (usado se for cliente)
+        let conns = [];
+        let hostConn;
         
         let meusCliques = 0;
         let placares = { eu: 0, p2: 0, p3: 0 };
         let jogoAtivo = false;
         let ehHost = false;
-        let meuIdNoJogo = 'eu'; // 'eu', 'p2' ou 'p3'
+        let meuIdNoJogo = 'eu';
 
         const lobbyScreen = document.getElementById('lobby-screen');
         const menuPrincipal = document.getElementById('menu-principal');
@@ -104,21 +101,17 @@
                 waitingMsg.style.display = 'block';
             });
 
-            // O Host aceita até 2 conexões externas (totalizando 3 jogadores)
             peer.on('connection', (connection) => {
                 if (conns.length >= 2) {
-                    connection.close(); // Sala cheia
+                    connection.close();
                     return;
                 }
                 
                 conns.push(connection);
-                const playerIndex = conns.length + 1; // 'p2' ou 'p3'
+                const playerIndex = conns.length + 1;
                 
                 connection.on('open', () => {
-                    // Envia a identidade para o jogador que entrou
                     connection.send({ tipo: 'atribuir_papel', papel: 'p' + playerIndex });
-                    
-                    // Se já temos 2 conexões (3 pessoas no total), podemos iniciar
                     if (conns.length === 2) {
                         setTimeout(iniciarPartidaHost, 1000);
                     }
@@ -126,7 +119,6 @@
 
                 connection.on('data', (data) => {
                     if (data.tipo === 'clique') {
-                        // Atualiza o placar do jogador correspondente e retransmite para todos
                         placares[data.jogador] = data.total;
                         atualizarPlacarTela();
                         transmitirParaTodos({ tipo: 'atualizar_placar', placares });
@@ -153,7 +145,7 @@
 
                 hostConn.on('data', (data) => {
                     if (data.tipo === 'atribuir_papel') {
-                        meuIdNoJogo = data.papel; // 'p2' ou 'p3'
+                        meuIdNoJogo = data.papel;
                     } else if (data.tipo === 'inicio') {
                         iniciarJogoTela();
                     } else if (data.tipo === 'tempo') {
@@ -184,7 +176,6 @@
                     clearInterval(intervalo);
                     jogoAtivo = false;
                     
-                    // Descobre quem ganhou
                     let maxCliques = Math.max(placares.eu, placares.p2, placares.p3);
                     let vencedores = [];
                     if (placares.eu === maxCliques) vencedores.push("Você");
@@ -212,11 +203,9 @@
             placares[meuIdNoJogo] = meusCliques;
             atualizarPlacarTela();
             
-            // Animação do ovo
             const ovo = document.getElementById('big-egg');
             ovo.innerText = meusCliques > 20 ? '🍳' : meusCliques > 10 ? '💥' : '🥚';
 
-            // Envia clique
             if (ehHost) {
                 transmitirParaTodos({ tipo: 'atualizar_placar', placares });
             } else if (hostConn && hostConn.open) {
@@ -231,7 +220,6 @@
         }
 
         function atualizarPlacarTela() {
-            // Mapeia de acordo com a visão de cada tela (Sempre mostra "Você" na primeira coluna)
             if (meuIdNoJogo === 'eu') {
                 document.getElementById('score-eu').innerText = placares.eu;
                 document.getElementById('score-p2').innerText = placares.p2;
