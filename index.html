@@ -52,7 +52,6 @@
             <span id="meu-codigo" style="font-size: 2.5rem; color: #2ecc71; font-weight: bold; display:inline-block; margin-top:10px; letter-spacing: 3px;"></span>
             <p style="font-size: 0.9rem; margin-top: 10px; color: #f39c12;">Passe este código de 4 dígitos para os outros!</p>
             
-            <!-- Botão que só aparece para o Host iniciar quando quiser -->
             <button id="btn-start-game" onclick="iniciarPartidaHost()">Iniciar Jogo 🚀</button>
         </div>
     </div>
@@ -129,7 +128,6 @@
                     statusConexao.innerText = "Sala cheia! Pronto para iniciar.";
                 }
 
-                // Libera o botão de iniciar para o Host assim que pelo menos 1 entrar (ou pode iniciar com os 3)
                 if (conns.length > 0) {
                     btnStartGame.style.display = "inline-block";
                 }
@@ -257,7 +255,7 @@
                 document.getElementById('score-eu').innerText = placares.p2;
                 document.getElementById('score-p2').innerText = placares.eu;
                 document.getElementById('score-p3').innerText = placares.p3;
-            } else if (meuIdNo->Jogo === 'p3') {
+            } else if (meuIdNoJogo === 'p3') {
                 document.getElementById('score-eu').innerText = placares.p3;
                 document.getElementById('score-p2').innerText = placares.eu;
                 document.getElementById('score-p3').innerText = placares.p2;
