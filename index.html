@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Batalha de Cartas: Ovos & Linguiças</title>
+    <title>Cartas: Ovos & Salsichas</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: manipulation; }
         body { display: flex; justify-content: center; align-items: center; height: 100vh; background: #1e272c; color: white; overflow: hidden; }
@@ -23,19 +23,24 @@
         /* TELA DO JOGO */
         #game-screen { display: none; flex-direction: column; width: 100%; height: 100%; justify-content: space-between; padding: 10px; background: #27ae60; position: relative; }
         
-        #header-jogo { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 10px; font-size: 0.9rem; }
-        .status-turno { color: #f1c40f; font-weight: bold; }
+        /* Cabeçalho de Status dos 3 Jogadores */
+        #header-jogadores { display: flex; justify-content: space-around; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 10px; font-size: 0.85rem; text-align: center; }
+        .jogador-status { padding: 5px 10px; border-radius: 6px; background: rgba(255,255,255,0.1); width: 30%; }
+        .jogador-status.ativo { background: #f1c40f; color: #000; font-weight: bold; transform: scale(1.05); transition: 0.2s; }
 
-        /* Mesa no Centro */
-        #mesa-central { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(0,0,0,0.15); border-radius: 15px; margin: 10px 0; padding: 15px; text-align: center; position: relative; }
-        #carta-na-mesa { font-size: 5rem; background: white; width: 100px; height: 140px; border-radius: 10px; display: flex; justify-content: center; align-items: center; box-shadow: 0 8px 15px rgba(0,0,0,0.3); margin-bottom: 10px; border: 3px solid #333; }
-        #info-mesa { font-size: 1.1rem; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px #000; }
+        /* Banner Gigante da Vez */
+        #banner-vez { background: rgba(0,0,0,0.6); color: #f1c40f; font-size: 1.2rem; font-weight: bold; text-align: center; padding: 8px; border-radius: 8px; border: 2px solid #f1c40f; }
+
+        /* Mesa Central */
+        #mesa-central { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(0,0,0,0.15); border-radius: 15px; margin: 8px 0; padding: 10px; text-align: center; position: relative; }
+        #carta-na-mesa { font-size: 4.5rem; background: white; width: 90px; height: 130px; border-radius: 10px; display: flex; justify-content: center; align-items: center; box-shadow: 0 8px 15px rgba(0,0,0,0.3); margin-bottom: 8px; border: 3px solid #333; color: #333; }
+        #info-mesa { font-size: 1rem; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px #000; }
 
         /* Mão de Cartas do Jogador */
         #mao-container { display: flex; flex-direction: column; align-items: center; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 15px; }
         #cartas-jogador { display: flex; gap: 10px; justify-content: center; margin-top: 5px; }
         
-        .carta { background: #fff; color: #333; width: 75px; height: 110px; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 2.2rem; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.3); border: 2px solid #bdc3c7; transition: transform 0.2s; user-select: none; }
+        .carta { background: #fff; color: #333; width: 70px; height: 100px; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 2rem; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.3); border: 2px solid #bdc3c7; transition: transform 0.2s; user-select: none; }
         .carta:active { transform: translateY(-10px); }
 
         #botoes-acao { display: none; margin-top: 10px; gap: 10px; }
@@ -69,17 +74,22 @@
         </div>
     </div>
 
-    <!-- TELA DO JOGO DE CARTAS -->
+    <!-- TELA DO JOGO -->
     <div id="game-screen">
-        <div id="header-jogo">
-            <div>Placar: <span id="meu-placar" style="font-weight:bold; color:#f1c40f;">0</span> pts</div>
-            <div id="turno-info" class="status-turno">Sua Vez de Jogar!</div>
+        <!-- Indicador claro dos 3 jogadores -->
+        <div id="header-jogadores">
+            <div id="status-p1" class="jogador-status"><span id="lbl-p1">P1</span><br><span id="pts-p1">0</span>pts</div>
+            <div id="status-p2" class="jogador-status"><span id="lbl-p2">P2</span><br><span id="pts-p2">0</span>pts</div>
+            <div id="status-p3" class="jogador-status"><span id="lbl-p3">P3</span><br><span id="pts-p3">0</span>pts</div>
         </div>
+
+        <!-- Banner Gigante indicando quem deve jogar -->
+        <div id="banner-vez">Aguardando início...</div>
         
         <!-- Mesa Central -->
         <div id="mesa-central">
-            <div id="carta-na-mesa">❓</div>
-            <div id="info-mesa">Aguardando jogada...</div>
+            <div id="carta-na-mesa">🎴</div>
+            <div id="info-mesa">Aguardando a jogada da rodada...</div>
             
             <div id="botoes-acao">
                 <button class="btn-acao" id="btn-confiar" onclick="responderDesafio(true)">Confiar 👍</button>
@@ -89,7 +99,7 @@
 
         <!-- Mão de Cartas -->
         <div id="mao-container">
-            <p style="font-size: 0.9rem; margin-bottom: 5px;">Suas Cartas (Toque para jogar):</p>
+            <p style="font-size: 0.85rem; margin-bottom: 4px;">Suas Cartas (Toque para jogar):</p>
             <div id="cartas-jogador"></div>
         </div>
 
@@ -107,17 +117,17 @@
         let hostConn;
         
         let meuNome = "";
-        let meuIdNoJogo = 'p1'; // 'p1', 'p2', 'p3'
+        let meuIdNoJogo = 'p1';
         let ehHost = false;
         
-        // 4 Cartas na mão de cada um (Ex: ['🥚', '🌭', '🥓', '🥚'])
         let minhaMao = [];
-        let pontuacao = 0;
-        let jogadoresNomes = { p1: '', p2: '', p3: '' };
+        let pontuacoes = { p1: 0, p2: 0, p3: 0 };
+        let jogadoresNomes = { p1: 'P1', p2: 'P2', p3: 'P3' };
         
         let turnoAtual = 'p1';
         let cartaNaMesaAtual = null;
         let jogadorJogouCarta = null;
+        let jogoAtivo = false;
 
         const lobbyScreen = document.getElementById('lobby-screen');
         const menuPrincipal = document.getElementById('menu-principal');
@@ -128,11 +138,11 @@
         const codigoInput = document.getElementById('codigo-input');
         const btnStartGame = document.getElementById('btn-start-game');
         const gameScreen = document.getElementById('game-screen');
-        const turnoInfo = document.getElementById('turno-info');
+        
+        const bannerVez = document.getElementById('banner-vez');
         const cartaNaMesaEl = document.getElementById('carta-na-mesa');
         const infoMesa = document.getElementById('info-mesa');
         const cartasJogadorEl = document.getElementById('cartas-jogador');
-        const meuPlacarEl = document.getElementById('meu-placar');
         const botoesAcao = document.getElementById('botoes-acao');
 
         const itensPossiveis = ['🥚', '🌭', '🥓'];
@@ -172,7 +182,8 @@
                 connection.on('data', (data) => {
                     if (data.tipo === 'registrar_nome') {
                         jogadoresNomes[data.papel] = data.nome;
-                        transmitirParaTodos({ tipo: 'atualizar_nomes', nomes: jogadoresNomes });
+                        transmitirParaTodos({ tipo: 'sincronizar_tudo', nomes: jogadoresNomes, turno: turnoAtual, placares: pontuacoes });
+                        atualizarInterfaceGeral();
                     } else if (data.tipo === 'jogar_carta') {
                         processarJogada(data.jogador, data.carta);
                     } else if (data.tipo === 'resposta_desafio') {
@@ -206,9 +217,24 @@
                         jogadoresNomes[meuIdNoJogo] = meuNome;
                         hostConn.send({ tipo: 'registrar_nome', papel: meuIdNoJogo, nome: meuNome });
                     } else if (data.tipo === 'iniciar_jogo') {
-                        iniciarJogo(data.maos);
+                        minhaMao = data.maos[meuIdNoJogo];
+                        turnoAtual = data.turno;
+                        jogadoresNomes = data.nomes;
+                        iniciarJogoVisual();
+                    } else if (data.tipo === 'sincronizar_tudo') {
+                        jogadoresNomes = data.nomes;
+                        turnoAtual = data.turno;
+                        pontuacoes = data.placares;
+                        atualizarInterfaceGeral();
                     } else if (data.tipo === 'mesa_atualizada') {
-                        atualizarMesaVisual(data.jogador, data.cartaEscondida);
+                        jogadorJogouCarta = data.jogador;
+                        cartaNaMesaAtual = data.cartaEscondida;
+                        atualizarMesaVisual(data.jogador, '🎴');
+                    } else if (data.tipo === 'mudar_turno') {
+                        turnoAtual = data.novoTurno;
+                        cartaNaMesaAtual = null;
+                        jogadorJogouCarta = null;
+                        atualizarInterfaceGeral();
                     } else if (data.tipo === 'resultado_desafio') {
                         mostrarResultadoRodada(data.texto);
                     }
@@ -223,27 +249,56 @@
         }
 
         function iniciarPartidaHost() {
-            // Distribui 4 cartas aleatórias para cada um dos 3 jogadores
             let maosGerais = {
-                p1: [gerarCartaAleatoria(), gerarCartaAleatoria(), gerarCartaAleatoria(), gerarCartaAleatoria()],
-                p2: [gerarCartaAleatoria(), gerarCartaAleatoria(), gerarCartaAleatoria(), gerarCartaAleatoria()],
-                p3: [gerarCartaAleatoria(), gerarCartaAleatoria(), gerarCartaAleatoria(), gerarCartaAleatoria()]
+                p1: [gerarCarta(), gerarCarta(), gerarCarta(), gerarCarta()],
+                p2: [gerarCarta(), gerarCarta(), gerarCarta(), gerarCarta()],
+                p3: [gerarCarta(), gerarCarta(), gerarCarta(), gerarCarta()]
             };
 
-            transmitirParaTodos({ tipo: 'iniciar_jogo', maos: maosGerais });
-            iniciarJogo(maosGerais);
+            turnoAtual = 'p1';
+            minhaMao = maosGerais.p1;
+
+            transmitirParaTodos({ tipo: 'iniciar_jogo', maos: maosGerais, turno: turnoAtual, nomes: jogadoresNomes });
+            iniciarJogoVisual();
         }
 
-        function gerarCartaAleatoria() {
+        function gerarCarta() {
             return itensPossiveis[Math.floor(Math.random() * itensPossiveis.length)];
         }
 
-        function iniciarJogo(maosRecebidas) {
+        function iniciarJogoVisual() {
             lobbyScreen.style.display = 'none';
             gameScreen.style.display = 'flex';
-            minhaMao = maosRecebidas[meuIdNoJogo];
+            jogoAtivo = true;
+            atualizarInterfaceGeral();
+        }
+
+        function atualizarInterfaceGeral() {
+            // Nomes e Placares
+            document.getElementById('lbl-p1').innerText = jogadoresNomes.p1 || 'P1';
+            document.getElementById('lbl-p2').innerText = jogadoresNomes.p2 || 'P2';
+            document.getElementById('lbl-p3').innerText = jogadoresNomes.p3 || 'P3';
+            
+            document.getElementById('pts-p1').innerText = pontuacoes.p1;
+            document.getElementById('pts-p2').innerText = pontuacoes.p2;
+            document.getElementById('pts-p3').innerText = pontuacoes.p3;
+
+            // Destacar quem está ativo no topo
+            document.getElementById('status-p1').className = 'jogador-status' + (turnoAtual === 'p1' ? ' ativo' : '');
+            document.getElementById('status-p2').className = 'jogador-status' + (turnoAtual === 'p2' ? ' ativo' : '');
+            document.getElementById('status-p3').className = 'jogador-status' + (turnoAtual === 'p3' ? ' ativo' : '');
+
+            // Banner principal da vez
+            if (turnoAtual === meuIdNoJogo) {
+                bannerVez.innerText = "👉 É A SUA VEZ DE JOGAR!";
+                bannerVez.style.color = "#2ecc71";
+            } else {
+                let nomeTurno = jogadoresNomes[turnoAtual] || turnoAtual;
+                bannerVez.innerText = `⏳ Vez de: ${nomeTurno}`;
+                bannerVez.style.color = "#f1c40f";
+            }
+
             atualizarMaoVisual();
-            atualizarTurnoVisual();
         }
 
         function atualizarMaoVisual() {
@@ -251,15 +306,16 @@
             minhaMao.forEach((carta, index) => {
                 const el = document.createElement('div');
                 el.className = 'carta';
-                el.innerHTML = `<span>${carta}</span><span style="font-size:0.7rem; color:#7f8c8d">#${index+1}</span>`;
+                el.innerHTML = `<span>${carta}</span><span style="font-size:0.6rem; color:#7f8c8d">#${index+1}</span>`;
                 el.onclick = () => jogarCarta(index);
                 cartasJogadorEl.appendChild(el);
             });
         }
 
         function jogarCarta(index) {
+            if (!jogoAtivo) return;
             if (turnoAtual !== meuIdNoJogo) {
-                alert('Não é o seu turno!');
+                alert('Espere! Não é o seu turno agora.');
                 return;
             }
             let cartaEscolhida = minhaMao.splice(index, 1)[0];
@@ -276,7 +332,6 @@
             jogadorJogouCarta = jogador;
             cartaNaMesaAtual = carta;
             
-            // Avisa todos quem jogou e esconde a carta na mesa
             if (ehHost) {
                 transmitirParaTodos({ tipo: 'mesa_atualizada', jogador: jogador, cartaEscondida: '🎴' });
             }
@@ -286,14 +341,14 @@
         function atualizarMesaVisual(jogador, icone) {
             cartaNaMesaEl.innerText = icone;
             let nomeJ = jogadoresNomes[jogador] || jogador;
-            infoMesa.innerText = `${nomeJ} jogou uma carta virada para baixo! É verdade ou blefe?`;
+            infoMesa.innerText = `${nomeJ} jogou uma carta virada para baixo!`;
             
-            // Se não for quem jogou, pode duvidar ou confiar
             if (meuIdNoJogo !== jogador) {
                 botoesAcao.style.display = 'flex';
-                turnoInfo.innerText = "Desafie a jogada!";
+                bannerVez.innerText = "⚠️ DECIDA: Confia ou Duvida?";
             } else {
-                turnoInfo.innerText = "Sua carta está na mesa...";
+                botoesAcao.style.display = 'none';
+                bannerVez.innerText = "🔒 Sua carta está na mesa. Aguarde os outros!";
             }
         }
 
@@ -313,20 +368,18 @@
             if (!confia) alguemDuvidou = true;
             respostasRecebidas++;
 
-            // Como são 3 jogadores, precisamos de 2 respostas para fechar o desafio
             if (respostasRecebidas >= 2 || !ehHost) {
                 respostasRecebidas = 0;
                 
-                // Revela a carta
                 cartaNaMesaEl.innerText = cartaNaMesaAtual;
                 let nomeJ = jogadoresNomes[jogadorJogouCarta];
                 let textoRes = "";
 
                 if (alguemDuvidou) {
-                    textoRes = `${nomeJ} revelou: ${cartaNaMesaAtual}! Alguém duvidou e se deu mal/bem!`;
+                    textoRes = `${nomeJ} revelou: ${cartaNaMesaAtual}! Alguém duvidou!`;
                 } else {
-                    textoRes = `${nomeJ} passou com sucesso a carta ${cartaNaMesaAtual}!`;
-                    if (jogadorJogouCarta === meuIdNoJogo) pontuacao += 10;
+                    textoRes = `${nomeJ} passou a carta ${cartaNaMesaAtual} com sucesso!`;
+                    pontuacoes[jogadorJogouCarta] += 10;
                 }
                 alguemDuvidou = false;
 
@@ -339,25 +392,20 @@
 
         function mostrarResultadoRodada(texto) {
             infoMesa.innerText = texto;
-            meuPlacarEl.innerText = pontuacao;
             
-            // Passa o turno para o próximo jogador após 3 segundos
+            // Avança o turno para o próximo jogador após 3 segundos
             setTimeout(() => {
                 if (turnoAtual === 'p1') turnoAtual = 'p2';
                 else if (turnoAtual === 'p2') turnoAtual = 'p3';
                 else turnoAtual = 'p1';
 
-                cartaNaMesaEl.innerText = '❓';
-                atualizarTurnoVisual();
+                cartaNaMesaEl.innerText = '🎴';
+                
+                if (ehHost) {
+                    transmitirParaTodos({ tipo: 'mudar_turno', novoTurno: turnoAtual });
+                }
+                atualizarInterfaceGeral();
             }, 3500);
-        }
-
-        function atualizarTurnoVisual() {
-            if (turnoAtual === meuIdNoJogo) {
-                turnoInfo.innerText = "Sua Vez! Escolha uma carta.";
-            } else {
-                turnoInfo.innerText = `Vez de ${jogadoresNomes[turnoAtual] || turnoAtual}`;
-            }
         }
 
         function transmitirParaTodos(dados) {
