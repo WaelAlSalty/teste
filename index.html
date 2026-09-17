@@ -12,7 +12,7 @@
         h1 { font-size: 2.2rem; margin-bottom: 20px; color: #f1c40f; text-shadow: 2px 2px 0 #c0392b; }
         button { background: #27ae60; color: white; border: none; padding: 15px 30px; font-size: 1.2rem; border-radius: 50px; cursor: pointer; margin: 10px; transition: 0.2s; font-weight: bold; box-shadow: 0 4px 0 #1e8449; width: 100%; max-width: 250px; }
         button:active { transform: translateY(2px); box-shadow: 0 2px 0 #1e8449; }
-        input { padding: 15px; font-size: 1.2rem; border-radius: 10px; border: 2px solid #7f8c8d; background: #ecf0f1; width: 100%; max-width: 250px; text-align: center; margin-bottom: 10px; color: #333;}
+        input { padding: 15px; font-size: 1.5rem; border-radius: 10px; border: 2px solid #7f8c8d; background: #ecf0f1; width: 100%; max-width: 250px; text-align: center; margin-bottom: 10px; color: #333; letter-spacing: 2px; font-weight: bold;}
         
         #waiting-msg { display: none; font-size: 1.2rem; color: #bdc3c7; }
         
@@ -39,14 +39,15 @@
         <div id="menu-principal">
             <button onclick="criarSala()">Criar Sala (Host)</button>
             <p style="margin: 10px 0; color: #95a5a6;">ou</p>
-            <input type="text" id="codigo-input" placeholder="Código do Host" maxlength="30">
+            <!-- Input otimizado para digitar números curtos facilmente no celular -->
+            <input type="number" id="codigo-input" placeholder="Ex: 4321" maxlength="4">
             <br>
             <button onclick="entrarSala()">Entrar na Sala</button>
         </div>
         <div id="waiting-msg">
             Esperando jogadores...<br>
-            <span id="meu-codigo" style="font-size: 1.5rem; color: #2ecc71; font-weight: bold; display:inline-block; margin-top:10px;"></span>
-            <p style="font-size: 0.9rem; margin-top: 10px; color: #f39c12;">Compartilhe este código com os outros 2 jogadores!</p>
+            <span id="meu-codigo" style="font-size: 2.5rem; color: #2ecc71; font-weight: bold; display:inline-block; margin-top:10px; letter-spacing: 3px;"></span>
+            <p style="font-size: 0.9rem; margin-top: 10px; color: #f39c12;">Digite este código de 4 dígitos nos outros celulares!</p>
         </div>
     </div>
 
@@ -93,10 +94,15 @@
 
         function criarSala() {
             ehHost = true;
-            peer = new Peer();
+            // Gera um código numérico aleatório de 4 dígitos (ex: 1048)
+            const codigoCurto = "ovo-" + Math.floor(1000 + Math.random() * 9000);
+            
+            peer = new Peer(codigoCurto);
 
             peer.on('open', (id) => {
-                meuCodigoEl.innerText = id;
+                // Mostra apenas os números limpos para o usuário (ex: 1048)
+                const codigoLimpo = id.replace("ovo-", "");
+                meuCodigoEl.innerText = codigoLimpo;
                 menuPrincipal.style.display = 'none';
                 waitingMsg.style.display = 'block';
             });
@@ -125,22 +131,32 @@
                     }
                 });
             });
+            
+            peer.on('error', (err) => {
+                // Se por acaso o número já existir, tenta de novo
+                criarSala();
+            });
         }
 
         function entrarSala() {
-            const codigo = codigoInput.value.trim();
-            if(!codigo) { alert('Digite o código do Host!'); return; }
+            const digitado = codigoInput.value.trim();
+            if(!digitado) { alert('Digite o código de 4 dígitos!'); return; }
             
+            const codigoCompleto = "ovo-" + digitado;
             ehHost = false;
             peer = new Peer();
 
             peer.on('open', () => {
-                hostConn = peer.connect(codigo);
+                hostConn = peer.connect(codigoCompleto);
                 
                 hostConn.on('open', () => {
                     menuPrincipal.style.display = 'none';
                     waitingMsg.style.display = 'block';
                     meuCodigoEl.innerText = "Conectado! Aguardando o Host iniciar...";
+                });
+
+                hostConn.on('error', () => {
+                    alert('Sala não encontrada! Verifique o código.');
                 });
 
                 hostConn.on('data', (data) => {
