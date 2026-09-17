@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batalha de Cliques em Tempo Real</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            touch-action: manipulation;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #222;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            color: #aaa;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        /* Área do Jogo */
+        #game-screen {
+            flex-direction: row;
+            height: 100vh;
+            width: 100vw;
+            padding: 0;
+        }
+
+        .player-side {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            user-select: none;
+            transition: background 0.1s;
+        }
+
+        #side-p1 {
+            background-color: #d9534f; /* Vermelho */
+        }
+
+        #side-p2 {
+            background-color: #0275d8; /* Azul */
+        }
+
+        .score {
+            font-size: 4rem;
+            margin-top: 10px;
+        }
+
+        #timer {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Tela Inicial / Lobby -->
+    <div id="lobby-screen" class="screen">
+        <h1>Batalha de Cliques</h1>
+        <p id="status-message">Conectando ao servidor...</p>
+        <button id="btn-start" class="hidden" onclick="iniciarJogo()">Procurar Partida</button>
+    </div>
+
+    <!-- Tela do Jogo -->
+    <div id="game-screen" class="screen hidden">
+        <div id="timer">10s</div>
+        <div id="side-p1" class="player-side" onclick="clicar()">
+            <span id="label-p1">Você (Vermelho)</span>
+            <div id="score-p1" class="score">0</div>
+        </div>
+        <div id="side-p2" class="player-side">
+            <span id="label-p2">Oponente (Azul)</span>
+            <div id="score-p2" class="score">0</div>
+        </div>
+    </div>
+
+    <!-- Tela de Fim de Jogo -->
+    <div id="gameover-screen" class="screen hidden">
+        <h1 id="result-text">Fim de Jogo!</h1>
+        <button onclick="reiniciar()">Jogar Novamente</button>
+    </div>
+
+    <!-- Importando o Socket.io do Servidor Público Gratuito -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        // Conectando ao servidor público de teste do Socket.io
+        const socket = io("https://sweltering-sea-baritone.glitch.me");
+
+        const lobbyScreen = document.getElementById("lobby-screen");
+        const gameScreen = document.getElementById("game-screen");
+        const gameOverScreen = document.getElementById("gameover-screen");
+        
+        const statusMessage = document.getElementById("status-message");
+        const btnStart = document.getElementById("btn-start");
+        const timerEl = document.getElementById("timer");
+        
+        const scoreP1El = document.getElementById("score-p1");
+        const scoreP2El = document.getElementById("score-p2");
+        const labelP1 = document.getElementById("label-p1");
+        const labelP2 = document.getElementById("label-p2");
+        const resultText = document.getElementById("result-text");
+        const sideP1 = document.getElementById("side-p1");
+        const sideP2 = document.getElementById("side-p2");
+
+        let meuPapel = null; // 'p1' ou 'p2'
+
+        socket.on("connect", () => {
+            statusMessage.innerText = "Conectado! Clique abaixo para buscar um oponente.";
+            btnStart.classList.remove("hidden");
+        });
+
+        function iniciarJogo() {
+            btnStart.classList.add("hidden");
+            statusMessage.innerText = "Procurando outro jogador...";
+            socket.emit("procurar_partida");
+        }
+
+        socket.on("encontrou_parceiro", (data) => {
+            meuPapel = data.papel; // Recebe se é p1 ou p2
+            lobbyScreen.classList.add("hidden");
+            gameScreen.classList.remove("hidden");
+            
+            if (meuPapel === 'p1') {
+                labelP1.innerText = "SEU LADO (Toque Rápido!)";
+                labelP2.innerText = "Oponente";
+                sideP1.style.pointerEvents = "auto";
+                sideP2.style.pointerEvents = "none";
+            } else {
+                labelP1.innerText = "Oponente";
+                labelP2.innerText = "SEU LADO (Toque Rápido!)";
+                sideP1.style.pointerEvents = "none";
+                sideP2.style.pointerEvents = "auto";
+            }
+        });
+
+        function clicar() {
+            socket.emit("clique", meuPapel);
+        }
+
+        // Se o oponente clicar na tela dele, o servidor atualiza aqui em tempo real
+        socket.on("atualizar_placar", (scores) => {
+            scoreP1El.innerText = scores.p1;
+            scoreP2El.innerText = scores.p2;
+        });
+
+        socket.on("atualizar_tempo", (tempoRestante) => {
+            timerEl.innerText = tempoRestante + "s";
+        });
+
+        socket.on("fim_de_jogo", (dadosFinais) => {
+            gameScreen.classList.add("hidden");
+            gameOverScreen.classList.remove("hidden");
+
+            if (dadosFinais.empate) {
+                resultText.innerText = "Empate!";
+            } else if (dadosFinais.vencedor === meuPapel) {
+                resultText.innerText = "Você Venceu! 🎉";
+            } else {
+                resultText.innerText = "Você Perdeu! 😢";
+            }
+        });
+
+        function reiniciar() {
+            gameOverScreen.classList.add("hidden");
+            lobbyScreen.classList.remove("hidden");
+            statusMessage.innerText = "Pronto para outra?";
+            btnStart.classList.remove("hidden");
+            scoreP1El.innerText = "0";
+            scoreP2El.innerText = "0";
+            timerEl.innerText = "10s";
+        }
+    </script>
+</body>
+</html>
