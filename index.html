@@ -2,215 +2,260 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Batalha de Ovos P2P</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; touch-action: manipulation; }
-        body { display: flex; flex-direction: column; height: 100vh; background: #1a1a1a; color: #fff; overflow: hidden; }
-        .screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
-        .hidden { display: none !important; }
-        h1 { font-size: 2rem; margin-bottom: 20px; color: #f39c12; }
-        p { font-size: 1.1rem; margin-bottom: 20px; color: #aaa; }
-        button, input { background: #f39c12; color: #fff; border: none; padding: 15px 20px; font-size: 1.1rem; border-radius: 8px; margin: 5px; cursor: pointer; font-weight: bold; }
-        button:active { transform: scale(0.95); }
-        input { background: #333; border: 2px solid #555; width: 80%; max-width: 300px; text-align: center; color: #fff; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: manipulation; }
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; background: #2c3e50; color: white; overflow: hidden; }
         
-        #game-screen { flex-direction: row; height: 100vh; width: 100vw; padding: 0; position: relative; }
-        .player-side { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; user-select: none; cursor: pointer; transition: background 0.1s; }
+        /* Lobbys */
+        #lobby-screen { text-align: center; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 15px; }
+        h1 { font-size: 2.5rem; margin-bottom: 20px; color: #f1c40f; text-shadow: 2px 2px 0 #c0392b; }
+        button { background: #27ae60; color: white; border: none; padding: 15px 30px; font-size: 1.2rem; border-radius: 50px; cursor: pointer; margin: 10px; transition: 0.2s; font-weight: bold; box-shadow: 0 4px 0 #1e8449; }
+        button:active { transform: translateY(2px); box-shadow: 0 2px 0 #1e8449; }
+        input { padding: 15px; font-size: 1.2rem; border-radius: 10px; border: 2px solid #7f8c8d; background: #ecf0f1; width: 80%; max-width: 250px; text-align: center; margin-bottom: 10px;}
         
-        #side-p1 { background-color: #2c3e50; border-right: 4px solid #111; }
-        #side-p2 { background-color: #34495e; }
+        /* Tela de Espera */
+        #waiting-msg { display: none; font-size: 1.5rem; color: #bdc3c7; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
         
-        .egg-container { font-size: 6rem; margin: 20px 0; transition: transform 0.05s; }
-        .score { font-size: 1.5rem; color: #f1c40f; }
+        /* Jogo */
+        #game-screen { display: none; flex-direction: column; width: 100%; height: 100%; justify-content: space-between; padding: 20px; }
         
-        #timer { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); padding: 10px 25px; border-radius: 20px; font-size: 1.5rem; z-index: 10; border: 2px solid #f39c12; }
+        /* Cabeçalho (Tempo e Placar) */
+        #header { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 20px;}
+        #timer { font-size: 3rem; font-weight: bold; color: #e74c3c; width: 100px; text-align: center;}
+        #vs { font-size: 2rem; color: #7f8c8d; font-weight: bold;}
+        .scores { font-size: 1.5rem; text-align: center; width: 100px;}
+        .score-num { font-size: 3rem; display: block; }
+        
+        /* Área do Ovo (Onde clica) */
+        #egg-section { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; }
+        #big-egg { font-size: 15rem; cursor: pointer; user-select: none; transition: transform 0.1s; filter: drop-shadow(0 10px 0px rgba(0,0,0,0.3)); }
+        #big-egg:active { transform: scale(0.95) translateY(5px); }
+        
+        /* Overlay de resultado */
+        #result-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+        #result-text { font-size: 3rem; margin-bottom: 30px; color: #f1c40f; text-align: center;}
+
+        /* Cores dos jogadores */
+        body.player1 { background-color: #c0392b; /* Fundo Vermelho */ }
+        body.player2 { background-color: #2980b9; /* Fundo Azul */ }
+        body.player1 h1 { color: #fff; text-shadow: none;}
+        body.player1 #timer { color: #ffeaa7; }
+
     </style>
 </head>
 <body>
 
-    <!-- Lobby -->
-    <div id="lobby-screen" class="screen">
+    <!-- TELA INICIAL (LOBBY) -->
+    <div id="lobby-screen">
         <h1>Batalha de Ovos 🥚</h1>
-        <div id="menu-inicial">
+        <div id="menu-principal">
             <button onclick="criarSala()">Criar Sala</button>
-            <p>ou</p>
-            <input type="text" id="codigo-sala" placeholder="Cole o código do amigo">
+            <p style="margin: 10px 0; color: #95a5a6;">ou</p>
+            <input type="text" id="codigo-input" placeholder="Código do Amigo" maxlength="5">
+            <br>
             <button onclick="entrarSala()">Entrar na Sala</button>
         </div>
-        <div id="menu-espera" class="hidden">
-            <p>Seu código da sala:</p>
-            <h3 id="exibe-codigo" style="color: #f39c12; font-size: 1.5rem; margin-bottom: 15px;"></h3>
-            <p>Mande esse código para o seu amigo colocar no celular dele!</p>
+        <div id="waiting-msg">
+            Esperando Oponente...<br>
+            <span id="meu-codigo" style="font-size: 2rem; color: #2ecc71; font-weight: bold;"></span>
         </div>
     </div>
 
-    <!-- Jogo -->
-    <div id="game-screen" class="screen hidden">
-        <div id="timer">10s</div>
+    <!-- TELA DO JOGO -->
+    <div id="game-screen">
+        <div id="header">
+            <div id="timer">10</div>
+            <div id="vs">VS</div>
+            <div class="scores">
+                Ovos<br>
+                <span id="meu-placar" class="score-num">0</span>
+            </div>
+        </div>
         
-        <div id="side-p1" class="player-side" onclick="clicarLado('p1')">
-            <span id="label-p1">Ovo 1</span>
-            <div id="egg-p1" class="egg-container">🥚</div>
-            <div class="score">Cliques: <span id="score-p1">0</span></div>
-        </div>
-        
-        <div id="side-p2" class="player-side" onclick="clicarLado('p2')">
-            <span id="label-p2">Ovo 2</span>
-            <div id="egg-p2" class="egg-container">🥚</div>
-            <div class="score">Cliques: <span id="score-p2">0</span></div>
+        <div id="egg-section">
+            <div id="big-egg" onclick="registrarClique()">🥚</div>
+            
+            <!-- Tela de fim de jogo por cima -->
+            <div id="result-overlay">
+                <div id="result-text">Você Ganhou!</div>
+                <button onclick="location.reload()">Jogar Novamente</button>
+            </div>
         </div>
     </div>
 
-    <!-- Fim -->
-    <div id="gameover-screen" class="screen hidden">
-        <h1 id="result-text">Fim de Jogo!</h1>
-        <button onclick="location.reload()">Jogar Novamente</button>
-    </div>
-
-    <!-- Importando PeerJS -->
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <!-- BIBLIOTECA PEERJS (Para conexão direta) -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    
     <script>
         let peer, conn;
-        let meuPapel = '';
-        let scores = { p1: 0, p2: 0 };
+        let meusCliques = 0;
+        let oponenteCliques = 0;
         let jogoAtivo = false;
+        let ehHost = false;
 
         const lobbyScreen = document.getElementById('lobby-screen');
+        const menuPrincipal = document.getElementById('menu-principal');
+        const waitingMsg = document.getElementById('waiting-msg');
+        const meuCodigoEl = document.getElementById('meu-codigo');
+        const codigoInput = document.getElementById('codigo-input');
         const gameScreen = document.getElementById('game-screen');
-        const gameOverScreen = document.getElementById('gameover-screen');
-        const menuInicial = document.getElementById('menu-inicial');
-        const menuEspera = document.getElementById('menu-espera');
-        const exibeCodigo = document.getElementById('exibe-codigo');
-        const inputCodigo = document.getElementById('codigo-sala');
+        const timerEl = document.getElementById('timer');
+        const meuPlacarEl = document.getElementById('meu-placar');
+        const resultOverlay = document.getElementById('result-overlay');
+        const resultText = document.getElementById('result-text');
 
-        function criarSala() {
-            peer = new Peer();
+        // --- 1. CONFIGURAR CONEXÃO ---
+        function iniciarPeer(idEspecifico = null) {
+            peer = idEspecifico ? new Peer(idEspecifico) : new Peer();
+
             peer.on('open', (id) => {
-                menuInicial.classList.add('hidden');
-                menuEspera.classList.remove('hidden');
-                exibeCodigo.innerText = id;
+                console.log('Meu ID Peerjs é: ' + id);
+                if(!idEspecifico) {
+                    meuCodigoEl.innerText = id;
+                    menuPrincipal.style.display = 'none';
+                    waitingMsg.style.display = 'block';
+                }
             });
 
+            // Quando alguém conectar em mim (Host)
             peer.on('connection', (connection) => {
                 conn = connection;
-                meuPapel = 'p1';
-                configurarConexao();
-                iniciarPartida();
+                ehHost = true;
+                configurarReceiver();
+                iniciarContagemRegressivaHost(); // Host inicia o jogo
             });
+            
+            peer.on('error', (err) => {
+                console.log(err);
+                alert('Erro de conexão. Tente recarregar a página.');
+            });
+        }
+
+        // --- 2. LÓGICA DO LOBBY ---
+        function criarSala() {
+            iniciarPeer(); // Cria um ID aleatório
         }
 
         function entrarSala() {
-            const codigoAmigo = inputCodigo.value.trim();
-            if (!codigoAmigo) return alert('Digite o código!');
-
-            peer = new Peer();
-            peer.on('open', () => {
-                conn = peer.connect(codigoAmigo);
-                meuPapel = 'p2';
-                configurarConexao();
-                iniciarPartida();
-            });
+            const codigo = codigoInput.value.trim();
+            if(!codigo) { alert('Digite o código!'); return; }
+            
+            iniciarPeer(); // Inicia o peer primeiro
+            setTimeout(() => {
+                conn = peer.connect(codigo);
+                configurarReceiver();
+                // Cliente espera o Host começar
+            }, 500);
         }
 
-        function configurarConexao() {
+        // --- 3. LÓGICA DO JOGO (COMUNICAÇÃO) ---
+        
+        // Configura o que acontece quando recebe dados do oponente
+        function configurarReceiver() {
             conn.on('data', (data) => {
                 if (data.tipo === 'clique') {
-                    scores[data.jogador]++;
-                    atualizarVisualOvos(data.jogador);
-                    atualizarPlacarDOM();
-                } else if (data.tipo === 'tempo') {
-                    document.getElementById('timer').innerText = data.tempo + 's';
+                    oponenteCliques++; // O oponente clicou no telefone dele
+                } else if (data.tipo === 'inicio') {
+                    iniciarJogoVisivel(); // Cliente recebe o sinal para começar
                 } else if (data.tipo === 'fim') {
-                    encerrarJogo(data.vencedor);
+                    finalizarJogo(data.vencedorCliques); // Host manda resultado
                 }
+            });
+            
+            conn.on('open', () => {
+                iniciarJogoVisivel();
             });
         }
 
-        function iniciarPartida() {
-            lobbyScreen.classList.add('hidden');
-            gameScreen.classList.remove('hidden');
+        function iniciarJogoVisivel() {
+            lobbyScreen.style.display = 'none';
+            gameScreen.style.display = 'flex';
             jogoAtivo = true;
-
-            // Define os rótulos de quem é quem
-            if (meuPapel === 'p1') {
-                document.getElementById('label-p1').innerText = "SEU OVO (Toque rápido!)";
-                document.getElementById('label-p2').innerText = "Ovo do Oponente";
-            } else {
-                document.getElementById('label-p1').innerText = "Ovo do Oponente";
-                document.getElementById('label-p2').innerText = "SEU OVO (Toque rápido!)";
-            }
-
-            // Somente o Host (p1) controla o cronômetro oficial e manda para o p2
-            if (meuPapel === 'p1') {
-                let tempo = 10;
-                const intervalo = setInterval(() => {
-                    tempo--;
-                    document.getElementById('timer').innerText = tempo + 's';
-                    conn.send({ tipo: 'tempo', tempo });
-
-                    if (tempo <= 0) {
-                        clearInterval(intervalo);
-                        jogoAtivo = false;
-                        let vencedor = scores.p1 > scores.p2 ? 'p1' : scores.p2 > scores.p1 ? 'p2' : 'empate';
-                        conn.send({ tipo: 'fim', vencedor });
-                        encerrarJogo(vencedor);
-                    }
-                }, 1000);
-            }
         }
 
-        function clicarLado(lado) {
+        function registrarClique() {
             if (!jogoAtivo) return;
             
-            // Cada jogador só pode clicar no seu próprio lado/ovo
-            if ((meuPapel === 'p1' && lado === 'p1') || (meuPapel === 'p2' && lado === 'p2')) {
-                scores[lado]++;
-                atualizarVisualOvos(lado);
-                atualizarPlacarDOM();
-                conn.send({ tipo: 'clique', jogador: lado });
-            }
-        }
-
-        function atualizarVisualOvos(lado) {
-            const eggEl = document.getElementById(`egg-${lado}`);
-            const totalCliques = scores[lado];
+            meusCliques++;
+            meuPlacarEl.innerText = meusCliques;
             
-            // Animação simples de clique
-            eggEl.style.transform = "scale(0.85)";
-            setTimeout(() => eggEl.style.transform = "scale(1)", 50);
-
-            // Muda o emoji do ovo conforme a quantidade de cliques (rachando até quebrar)
-            if (totalCliques > 25) {
-                eggEl.innerText = "🍳"; // virou ovo frito
-            } else if (totalCliques > 15) {
-                eggEl.innerText = "💥"; // explodindo/quebrando
-            } else if (totalCliques > 5) {
-                eggEl.innerText = "🪺"; // rachado
-            } else {
-                eggEl.innerText = "🥚"; // inteiro
+            // Envia para o oponente que você clicou
+            if (conn && conn.open) {
+                conn.send({ tipo: 'clique' });
             }
+            
+            // Efeito visual no ovo
+            const ovo = document.getElementById('big-egg');
+            ovo.innerText = meusCliques > 15 ? '🍳' : meusCliques > 5 ? '💥' : '🥚';
         }
 
-        function atualizarPlacarDOM() {
-            document.getElementById('score-p1').innerText = scores.p1;
-            document.getElementById('score-p2').innerText = scores.p2;
+        // --- 4. FIM DE JOGO (CRONÔMETRO E RESULTADO) ---
+        
+        // Apenas o Host roda o tempo
+        function iniciarContagemRegressivaHost() {
+            let tempo = 10;
+            timerEl.innerText = tempo;
+            
+            // Avisa o cliente para começar
+            setTimeout(() => {
+                if(conn && conn.open) conn.send({ tipo: 'inicio' });
+                iniciarJogoVisivel();
+            }, 500);
+
+            const intervalo = setInterval(() => {
+                tempo--;
+                timerEl.innerText = tempo;
+                
+                if (tempo <= 0) {
+                    clearInterval(intervalo);
+                    jogoAtivo = false;
+                    
+                    // Compara quem fez mais ovos
+                    let meuTotal = meusCliques;
+                    let oponenteTotal = oponenteCliques;
+                    
+                    let resultadoFinal = '';
+                    if (meuTotal > oponenteTotal) {
+                        resultadoFinal = 'ganhou';
+                    } else if (meuTotal < oponenteTotal) {
+                        resultadoFinal = 'perdeu';
+                    } else {
+                        resultadoFinal = 'empate';
+                    }
+                    
+                    // Mostra na tela do Host
+                    finalizarJogo(oponenteTotal);
+                    
+                    // Avisa o cliente o resultado (quantos o host fez)
+                    if(conn && conn.open) {
+                        conn.send({ tipo: 'fim', vencedorCliques: meuTotal });
+                    }
+                }
+            }, 1000);
         }
 
-        function encerrarJogo(vencedor) {
+        function finalizarJogo(cliquesOponenteFinal) {
             jogoAtivo = false;
-            gameScreen.classList.add('hidden');
-            gameOverScreen.classList.remove('hidden');
-            const res = document.getElementById('result-text');
+            resultOverlay.style.display = 'flex';
             
-            if (vencedor === 'empate') {
-                res.innerText = 'Empate!';
-            } else if (vencedor === meuPapel) {
-                res.innerText = 'Você Venceu! Seu ovo resistiu / chocou mais! 🐣🎉';
+            let meuTotal = meusCliques;
+            let oponenteTotal = cliquesOponenteFinal;
+
+            if (meuTotal > oponenteTotal) {
+                resultText.innerText = "Você Quebrou Mais Ovos! 🥚🎉";
+                resultText.style.color = "#f1c40f";
+            } else if (meuTotal < oponenteTotal) {
+                resultText.innerText = "O Oponente Quebrou Mais! 🍳😢";
+                resultText.style.color = "#e74c3c";
             } else {
-                res.innerText = 'Você Perdeu! O ovo quebrou! 🍳😢';
+                resultText.innerText = "Empate! 🥚=🥚";
+                resultText.style.color = "#ecf0f1";
             }
         }
+
     </script>
 </body>
 </html>
