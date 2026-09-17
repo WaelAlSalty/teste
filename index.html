@@ -3,64 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Batalha de Ovos P2P</title>
+    <title>Batalha de Ovos (3 Jogadores)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: manipulation; }
         body { display: flex; justify-content: center; align-items: center; height: 100vh; background: #2c3e50; color: white; overflow: hidden; }
         
-        /* Lobbys */
-        #lobby-screen { text-align: center; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 15px; }
-        h1 { font-size: 2.5rem; margin-bottom: 20px; color: #f1c40f; text-shadow: 2px 2px 0 #c0392b; }
-        button { background: #27ae60; color: white; border: none; padding: 15px 30px; font-size: 1.2rem; border-radius: 50px; cursor: pointer; margin: 10px; transition: 0.2s; font-weight: bold; box-shadow: 0 4px 0 #1e8449; }
+        #lobby-screen { text-align: center; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 15px; width: 90%; max-width: 400px; }
+        h1 { font-size: 2.2rem; margin-bottom: 20px; color: #f1c40f; text-shadow: 2px 2px 0 #c0392b; }
+        button { background: #27ae60; color: white; border: none; padding: 15px 30px; font-size: 1.2rem; border-radius: 50px; cursor: pointer; margin: 10px; transition: 0.2s; font-weight: bold; box-shadow: 0 4px 0 #1e8449; width: 100%; max-width: 250px; }
         button:active { transform: translateY(2px); box-shadow: 0 2px 0 #1e8449; }
-        input { padding: 15px; font-size: 1.2rem; border-radius: 10px; border: 2px solid #7f8c8d; background: #ecf0f1; width: 80%; max-width: 250px; text-align: center; margin-bottom: 10px;}
+        input { padding: 15px; font-size: 1.2rem; border-radius: 10px; border: 2px solid #7f8c8d; background: #ecf0f1; width: 100%; max-width: 250px; text-align: center; margin-bottom: 10px; color: #333;}
         
-        /* Tela de Espera */
-        #waiting-msg { display: none; font-size: 1.5rem; color: #bdc3c7; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+        #waiting-msg { display: none; font-size: 1.2rem; color: #bdc3c7; }
         
-        /* Jogo */
         #game-screen { display: none; flex-direction: column; width: 100%; height: 100%; justify-content: space-between; padding: 20px; }
         
-        /* Cabeçalho (Tempo e Placar) */
-        #header { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 20px;}
-        #timer { font-size: 3rem; font-weight: bold; color: #e74c3c; width: 100px; text-align: center;}
-        #vs { font-size: 2rem; color: #7f8c8d; font-weight: bold;}
-        .scores { font-size: 1.5rem; text-align: center; width: 100px;}
-        .score-num { font-size: 3rem; display: block; }
+        #header { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; }
+        #timer { font-size: 2.5rem; font-weight: bold; color: #e74c3c; width: 90px; text-align: center; }
         
-        /* Área do Ovo (Onde clica) */
-        #egg-section { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; }
-        #big-egg { font-size: 15rem; cursor: pointer; user-select: none; transition: transform 0.1s; filter: drop-shadow(0 10px 0px rgba(0,0,0,0.3)); }
+        .scoreboard { display: flex; flex-direction: column; align-items: center; font-size: 1rem; }
+        .score-val { font-size: 2rem; font-weight: bold; color: #f1c40f; }
+
+        #egg-section { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+        #big-egg { font-size: 12rem; cursor: pointer; user-select: none; transition: transform 0.1s; filter: drop-shadow(0 10px 0px rgba(0,0,0,0.3)); }
         #big-egg:active { transform: scale(0.95) translateY(5px); }
         
-        /* Overlay de resultado */
-        #result-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
-        #result-text { font-size: 3rem; margin-bottom: 30px; color: #f1c40f; text-align: center;}
-
-        /* Cores dos jogadores */
-        body.player1 { background-color: #c0392b; /* Fundo Vermelho */ }
-        body.player2 { background-color: #2980b9; /* Fundo Azul */ }
-        body.player1 h1 { color: #fff; text-shadow: none;}
-        body.player1 #timer { color: #ffeaa7; }
-
+        #result-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 10; padding: 20px; text-align: center; }
+        #result-text { font-size: 2rem; margin-bottom: 20px; color: #f1c40f; }
     </style>
 </head>
 <body>
 
-    <!-- TELA INICIAL (LOBBY) -->
+    <!-- TELA INICIAL -->
     <div id="lobby-screen">
-        <h1>Batalha de Ovos 🥚</h1>
+        <h1>Batalha de Ovos (3 Jogadores) 🥚</h1>
         <div id="menu-principal">
-            <button onclick="criarSala()">Criar Sala</button>
+            <button onclick="criarSala()">Criar Sala (Host)</button>
             <p style="margin: 10px 0; color: #95a5a6;">ou</p>
-            <input type="text" id="codigo-input" placeholder="Código do Amigo" maxlength="5">
+            <input type="text" id="codigo-input" placeholder="Código do Host" maxlength="10">
             <br>
             <button onclick="entrarSala()">Entrar na Sala</button>
         </div>
         <div id="waiting-msg">
-            Esperando Oponente...<br>
-            <span id="meu-codigo" style="font-size: 2rem; color: #2ecc71; font-weight: bold;"></span>
+            Esperando jogadores...<br>
+            <span id="meu-codigo" style="font-size: 1.5rem; color: #2ecc71; font-weight: bold; display:inline-block; margin-top:10px;"></span>
+            <p style="font-size: 0.9rem; margin-top: 10px; color: #f39c12;">Compartilhe este código com os outros 2 jogadores!</p>
         </div>
     </div>
 
@@ -68,33 +55,34 @@
     <div id="game-screen">
         <div id="header">
             <div id="timer">10</div>
-            <div id="vs">VS</div>
-            <div class="scores">
-                Ovos<br>
-                <span id="meu-placar" class="score-num">0</span>
-            </div>
+            <div class="scoreboard"><span>Você</span><span id="score-eu" class="score-val">0</span></div>
+            <div class="scoreboard"><span>P2</span><span id="score-p2" class="score-val">0</span></div>
+            <div class="scoreboard"><span>P3</span><span id="score-p3" class="score-val">0</span></div>
         </div>
         
         <div id="egg-section">
             <div id="big-egg" onclick="registrarClique()">🥚</div>
             
-            <!-- Tela de fim de jogo por cima -->
             <div id="result-overlay">
-                <div id="result-text">Você Ganhou!</div>
+                <div id="result-text">Fim de Jogo!</div>
                 <button onclick="location.reload()">Jogar Novamente</button>
             </div>
         </div>
     </div>
 
-    <!-- BIBLIOTECA PEERJS (Para conexão direta) -->
+    <!-- BIBLIOTECA PEERJS -->
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     
     <script>
-        let peer, conn;
+        let peer;
+        let conns = []; // Lista de conexões (usado se for o Host)
+        let hostConn;   // Conexão com o Host (usado se for cliente)
+        
         let meusCliques = 0;
-        let oponenteCliques = 0;
+        let placares = { eu: 0, p2: 0, p3: 0 };
         let jogoAtivo = false;
         let ehHost = false;
+        let meuIdNoJogo = 'eu'; // 'eu', 'p2' ou 'p3'
 
         const lobbyScreen = document.getElementById('lobby-screen');
         const menuPrincipal = document.getElementById('menu-principal');
@@ -103,74 +91,115 @@
         const codigoInput = document.getElementById('codigo-input');
         const gameScreen = document.getElementById('game-screen');
         const timerEl = document.getElementById('timer');
-        const meuPlacarEl = document.getElementById('meu-placar');
         const resultOverlay = document.getElementById('result-overlay');
         const resultText = document.getElementById('result-text');
 
-        // --- 1. CONFIGURAR CONEXÃO ---
-        function iniciarPeer(idEspecifico = null) {
-            peer = idEspecifico ? new Peer(idEspecifico) : new Peer();
+        function criarSala() {
+            ehHost = true;
+            peer = new Peer();
 
             peer.on('open', (id) => {
-                console.log('Meu ID Peerjs é: ' + id);
-                if(!idEspecifico) {
-                    meuCodigoEl.innerText = id;
-                    menuPrincipal.style.display = 'none';
-                    waitingMsg.style.display = 'block';
-                }
+                meuCodigoEl.innerText = id;
+                menuPrincipal.style.display = 'none';
+                waitingMsg.style.display = 'block';
             });
 
-            // Quando alguém conectar em mim (Host)
+            // O Host aceita até 2 conexões externas (totalizando 3 jogadores)
             peer.on('connection', (connection) => {
-                conn = connection;
-                ehHost = true;
-                configurarReceiver();
-                iniciarContagemRegressivaHost(); // Host inicia o jogo
-            });
-            
-            peer.on('error', (err) => {
-                console.log(err);
-                alert('Erro de conexão. Tente recarregar a página.');
-            });
-        }
+                if (conns.length >= 2) {
+                    connection.close(); // Sala cheia
+                    return;
+                }
+                
+                conns.push(connection);
+                const playerIndex = conns.length + 1; // 'p2' ou 'p3'
+                
+                connection.on('open', () => {
+                    // Envia a identidade para o jogador que entrou
+                    connection.send({ tipo: 'atribuir_papel', papel: 'p' + playerIndex });
+                    
+                    // Se já temos 2 conexões (3 pessoas no total), podemos iniciar
+                    if (conns.length === 2) {
+                        setTimeout(iniciarPartidaHost, 1000);
+                    }
+                });
 
-        // --- 2. LÓGICA DO LOBBY ---
-        function criarSala() {
-            iniciarPeer(); // Cria um ID aleatório
+                connection.on('data', (data) => {
+                    if (data.tipo === 'clique') {
+                        // Atualiza o placar do jogador correspondente e retransmite para todos
+                        placares[data.jogador] = data.total;
+                        atualizarPlacarTela();
+                        transmitirParaTodos({ tipo: 'atualizar_placar', placares });
+                    }
+                });
+            });
         }
 
         function entrarSala() {
             const codigo = codigoInput.value.trim();
-            if(!codigo) { alert('Digite o código!'); return; }
+            if(!codigo) { alert('Digite o código do Host!'); return; }
             
-            iniciarPeer(); // Inicia o peer primeiro
-            setTimeout(() => {
-                conn = peer.connect(codigo);
-                configurarReceiver();
-                // Cliente espera o Host começar
-            }, 500);
+            ehHost = false;
+            peer = new Peer();
+
+            peer.on('open', () => {
+                hostConn = peer.connect(codigo);
+                
+                hostConn.on('open', () => {
+                    menuPrincipal.style.display = 'none';
+                    waitingMsg.style.display = 'block';
+                    meuCodigoEl.innerText = "Conectado! Aguardando o Host iniciar...";
+                });
+
+                hostConn.on('data', (data) => {
+                    if (data.tipo === 'atribuir_papel') {
+                        meuIdNoJogo = data.papel; // 'p2' ou 'p3'
+                    } else if (data.tipo === 'inicio') {
+                        iniciarJogoTela();
+                    } else if (data.tipo === 'tempo') {
+                        timerEl.innerText = data.tempo;
+                    } else if (data.tipo === 'atualizar_placar') {
+                        placares = data.placares;
+                        atualizarPlacarTela();
+                    } else if (data.tipo === 'fim') {
+                        finalizarJogo(data.vencedorTexto);
+                    }
+                });
+            });
         }
 
-        // --- 3. LÓGICA DO JOGO (COMUNICAÇÃO) ---
-        
-        // Configura o que acontece quando recebe dados do oponente
-        function configurarReceiver() {
-            conn.on('data', (data) => {
-                if (data.tipo === 'clique') {
-                    oponenteCliques++; // O oponente clicou no telefone dele
-                } else if (data.tipo === 'inicio') {
-                    iniciarJogoVisivel(); // Cliente recebe o sinal para começar
-                } else if (data.tipo === 'fim') {
-                    finalizarJogo(data.vencedorCliques); // Host manda resultado
+        function iniciarPartidaHost() {
+            transmitirParaTodos({ tipo: 'inicio' });
+            iniciarJogoTela();
+            
+            let tempo = 10;
+            timerEl.innerText = tempo;
+            
+            const intervalo = setInterval(() => {
+                tempo--;
+                timerEl.innerText = tempo;
+                transmitirParaTodos({ tipo: 'tempo', tempo });
+                
+                if (tempo <= 0) {
+                    clearInterval(intervalo);
+                    jogoAtivo = false;
+                    
+                    // Descobre quem ganhou
+                    let maxCliques = Math.max(placares.eu, placares.p2, placares.p3);
+                    let vencedores = [];
+                    if (placares.eu === maxCliques) vencedores.push("Você");
+                    if (placares.p2 === maxCliques) vencedores.push("P2");
+                    if (placares.p3 === maxCliques) vencedores.push("P3");
+                    
+                    let textoFinal = vencedores.length > 1 ? "Empate entre: " + vencedores.join(", ") : vencedores[0] + " Venceu! 🏆";
+                    
+                    finalizarJogo(textoFinal);
+                    transmitirParaTodos({ tipo: 'fim', vencedorTexto: textoFinal });
                 }
-            });
-            
-            conn.on('open', () => {
-                iniciarJogoVisivel();
-            });
+            }, 1000);
         }
 
-        function iniciarJogoVisivel() {
+        function iniciarJogoTela() {
             lobbyScreen.style.display = 'none';
             gameScreen.style.display = 'flex';
             jogoAtivo = true;
@@ -180,82 +209,49 @@
             if (!jogoAtivo) return;
             
             meusCliques++;
-            meuPlacarEl.innerText = meusCliques;
+            placares[meuIdNoJogo] = meusCliques;
+            atualizarPlacarTela();
             
-            // Envia para o oponente que você clicou
-            if (conn && conn.open) {
-                conn.send({ tipo: 'clique' });
-            }
-            
-            // Efeito visual no ovo
+            // Animação do ovo
             const ovo = document.getElementById('big-egg');
-            ovo.innerText = meusCliques > 15 ? '🍳' : meusCliques > 5 ? '💥' : '🥚';
+            ovo.innerText = meusCliques > 20 ? '🍳' : meusCliques > 10 ? '💥' : '🥚';
+
+            // Envia clique
+            if (ehHost) {
+                transmitirParaTodos({ tipo: 'atualizar_placar', placares });
+            } else if (hostConn && hostConn.open) {
+                hostConn.send({ tipo: 'clique', jogador: meuIdNoJogo, total: meusCliques });
+            }
         }
 
-        // --- 4. FIM DE JOGO (CRONÔMETRO E RESULTADO) ---
-        
-        // Apenas o Host roda o tempo
-        function iniciarContagemRegressivaHost() {
-            let tempo = 10;
-            timerEl.innerText = tempo;
-            
-            // Avisa o cliente para começar
-            setTimeout(() => {
-                if(conn && conn.open) conn.send({ tipo: 'inicio' });
-                iniciarJogoVisivel();
-            }, 500);
-
-            const intervalo = setInterval(() => {
-                tempo--;
-                timerEl.innerText = tempo;
-                
-                if (tempo <= 0) {
-                    clearInterval(intervalo);
-                    jogoAtivo = false;
-                    
-                    // Compara quem fez mais ovos
-                    let meuTotal = meusCliques;
-                    let oponenteTotal = oponenteCliques;
-                    
-                    let resultadoFinal = '';
-                    if (meuTotal > oponenteTotal) {
-                        resultadoFinal = 'ganhou';
-                    } else if (meuTotal < oponenteTotal) {
-                        resultadoFinal = 'perdeu';
-                    } else {
-                        resultadoFinal = 'empate';
-                    }
-                    
-                    // Mostra na tela do Host
-                    finalizarJogo(oponenteTotal);
-                    
-                    // Avisa o cliente o resultado (quantos o host fez)
-                    if(conn && conn.open) {
-                        conn.send({ tipo: 'fim', vencedorCliques: meuTotal });
-                    }
-                }
-            }, 1000);
+        function transmitirParaTodos(dados) {
+            conns.forEach(c => {
+                if (c && c.open) c.send(dados);
+            });
         }
 
-        function finalizarJogo(cliquesOponenteFinal) {
+        function atualizarPlacarTela() {
+            // Mapeia de acordo com a visão de cada tela (Sempre mostra "Você" na primeira coluna)
+            if (meuIdNoJogo === 'eu') {
+                document.getElementById('score-eu').innerText = placares.eu;
+                document.getElementById('score-p2').innerText = placares.p2;
+                document.getElementById('score-p3').innerText = placares.p3;
+            } else if (meuIdNoJogo === 'p2') {
+                document.getElementById('score-eu').innerText = placares.p2;
+                document.getElementById('score-p2').innerText = placares.eu;
+                document.getElementById('score-p3').innerText = placares.p3;
+            } else if (meuIdNoJogo === 'p3') {
+                document.getElementById('score-eu').innerText = placares.p3;
+                document.getElementById('score-p2').innerText = placares.eu;
+                document.getElementById('score-p3').innerText = placares.p2;
+            }
+        }
+
+        function finalizarJogo(texto) {
             jogoAtivo = false;
             resultOverlay.style.display = 'flex';
-            
-            let meuTotal = meusCliques;
-            let oponenteTotal = cliquesOponenteFinal;
-
-            if (meuTotal > oponenteTotal) {
-                resultText.innerText = "Você Quebrou Mais Ovos! 🥚🎉";
-                resultText.style.color = "#f1c40f";
-            } else if (meuTotal < oponenteTotal) {
-                resultText.innerText = "O Oponente Quebrou Mais! 🍳😢";
-                resultText.style.color = "#e74c3c";
-            } else {
-                resultText.innerText = "Empate! 🥚=🥚";
-                resultText.style.color = "#ecf0f1";
-            }
+            resultText.innerText = texto;
         }
-
     </script>
 </body>
 </html>
