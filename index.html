@@ -3,29 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Batalha P2P</title>
+    <title>Batalha de Ovos P2P</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; touch-action: manipulation; }
-        body { display: flex; flex-direction: column; height: 100vh; background: #222; color: #fff; overflow: hidden; }
+        body { display: flex; flex-direction: column; height: 100vh; background: #1a1a1a; color: #fff; overflow: hidden; }
         .screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
         .hidden { display: none !important; }
-        h1 { font-size: 2rem; margin-bottom: 20px; }
+        h1 { font-size: 2rem; margin-bottom: 20px; color: #f39c12; }
         p { font-size: 1.1rem; margin-bottom: 20px; color: #aaa; }
-        button, input { background: #4CAF50; color: white; border: none; padding: 15px 20px; font-size: 1.1rem; border-radius: 8px; margin: 5px; cursor: pointer; font-weight: bold; }
-        input { background: #333; border: 2px solid #555; width: 80%; max-width: 300px; text-align: center; }
+        button, input { background: #f39c12; color: #fff; border: none; padding: 15px 20px; font-size: 1.1rem; border-radius: 8px; margin: 5px; cursor: pointer; font-weight: bold; }
+        button:active { transform: scale(0.95); }
+        input { background: #333; border: 2px solid #555; width: 80%; max-width: 300px; text-align: center; color: #fff; }
+        
         #game-screen { flex-direction: row; height: 100vh; width: 100vw; padding: 0; position: relative; }
-        .player-side { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; user-select: none; }
-        #side-p1 { background-color: #d9534f; }
-        #side-p2 { background-color: #0275d8; }
-        .score { font-size: 4rem; margin-top: 10px; }
-        #timer { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 20px; font-size: 1.5rem; z-index: 10; }
+        .player-side { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; user-select: none; cursor: pointer; transition: background 0.1s; }
+        
+        #side-p1 { background-color: #2c3e50; border-right: 4px solid #111; }
+        #side-p2 { background-color: #34495e; }
+        
+        .egg-container { font-size: 6rem; margin: 20px 0; transition: transform 0.05s; }
+        .score { font-size: 1.5rem; color: #f1c40f; }
+        
+        #timer { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); padding: 10px 25px; border-radius: 20px; font-size: 1.5rem; z-index: 10; border: 2px solid #f39c12; }
     </style>
 </head>
 <body>
 
     <!-- Lobby -->
     <div id="lobby-screen" class="screen">
-        <h1>Batalha 1v1</h1>
+        <h1>Batalha de Ovos 🥚</h1>
         <div id="menu-inicial">
             <button onclick="criarSala()">Criar Sala</button>
             <p>ou</p>
@@ -34,7 +40,7 @@
         </div>
         <div id="menu-espera" class="hidden">
             <p>Seu código da sala:</p>
-            <h3 id="exibe-codigo" style="color: #4CAF50; font-size: 1.5rem; margin-bottom: 15px;"></h3>
+            <h3 id="exibe-codigo" style="color: #f39c12; font-size: 1.5rem; margin-bottom: 15px;"></h3>
             <p>Mande esse código para o seu amigo colocar no celular dele!</p>
         </div>
     </div>
@@ -42,13 +48,17 @@
     <!-- Jogo -->
     <div id="game-screen" class="screen hidden">
         <div id="timer">10s</div>
+        
         <div id="side-p1" class="player-side" onclick="clicarLado('p1')">
-            <span>Vermelho</span>
-            <div id="score-p1" class="score">0</div>
+            <span id="label-p1">Ovo 1</span>
+            <div id="egg-p1" class="egg-container">🥚</div>
+            <div class="score">Cliques: <span id="score-p1">0</span></div>
         </div>
+        
         <div id="side-p2" class="player-side" onclick="clicarLado('p2')">
-            <span>Azul</span>
-            <div id="score-p2" class="score">0</div>
+            <span id="label-p2">Ovo 2</span>
+            <div id="egg-p2" class="egg-container">🥚</div>
+            <div class="score">Cliques: <span id="score-p2">0</span></div>
         </div>
     </div>
 
@@ -58,7 +68,7 @@
         <button onclick="location.reload()">Jogar Novamente</button>
     </div>
 
-    <!-- Importando PeerJS para conexão direta entre celulares -->
+    <!-- Importando PeerJS -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
         let peer, conn;
@@ -75,7 +85,7 @@
         const inputCodigo = document.getElementById('codigo-sala');
 
         function criarSala() {
-            peer = new Peer(); // Cria um ID único aleatório
+            peer = new Peer();
             peer.on('open', (id) => {
                 menuInicial.classList.add('hidden');
                 menuEspera.classList.remove('hidden');
@@ -107,7 +117,10 @@
             conn.on('data', (data) => {
                 if (data.tipo === 'clique') {
                     scores[data.jogador]++;
+                    atualizarVisualOvos(data.jogador);
                     atualizarPlacarDOM();
+                } else if (data.tipo === 'tempo') {
+                    document.getElementById('timer').innerText = data.tempo + 's';
                 } else if (data.tipo === 'fim') {
                     encerrarJogo(data.vencedor);
                 }
@@ -119,6 +132,16 @@
             gameScreen.classList.remove('hidden');
             jogoAtivo = true;
 
+            // Define os rótulos de quem é quem
+            if (meuPapel === 'p1') {
+                document.getElementById('label-p1').innerText = "SEU OVO (Toque rápido!)";
+                document.getElementById('label-p2').innerText = "Ovo do Oponente";
+            } else {
+                document.getElementById('label-p1').innerText = "Ovo do Oponente";
+                document.getElementById('label-p2').innerText = "SEU OVO (Toque rápido!)";
+            }
+
+            // Somente o Host (p1) controla o cronômetro oficial e manda para o p2
             if (meuPapel === 'p1') {
                 let tempo = 10;
                 const intervalo = setInterval(() => {
@@ -137,16 +160,35 @@
             }
         }
 
-        // Recebe tempo do host se for o p2
-        // (Ajuste rápido para capturar dados extras se necessário)
-        
         function clicarLado(lado) {
             if (!jogoAtivo) return;
-            // Cada um só pode pontuar no seu lado correspondente
+            
+            // Cada jogador só pode clicar no seu próprio lado/ovo
             if ((meuPapel === 'p1' && lado === 'p1') || (meuPapel === 'p2' && lado === 'p2')) {
                 scores[lado]++;
+                atualizarVisualOvos(lado);
                 atualizarPlacarDOM();
                 conn.send({ tipo: 'clique', jogador: lado });
+            }
+        }
+
+        function atualizarVisualOvos(lado) {
+            const eggEl = document.getElementById(`egg-${lado}`);
+            const totalCliques = scores[lado];
+            
+            // Animação simples de clique
+            eggEl.style.transform = "scale(0.85)";
+            setTimeout(() => eggEl.style.transform = "scale(1)", 50);
+
+            // Muda o emoji do ovo conforme a quantidade de cliques (rachando até quebrar)
+            if (totalCliques > 25) {
+                eggEl.innerText = "🍳"; // virou ovo frito
+            } else if (totalCliques > 15) {
+                eggEl.innerText = "💥"; // explodindo/quebrando
+            } else if (totalCliques > 5) {
+                eggEl.innerText = "🪺"; // rachado
+            } else {
+                eggEl.innerText = "🥚"; // inteiro
             }
         }
 
@@ -164,9 +206,9 @@
             if (vencedor === 'empate') {
                 res.innerText = 'Empate!';
             } else if (vencedor === meuPapel) {
-                res.innerText = 'Você Venceu! 🎉';
+                res.innerText = 'Você Venceu! Seu ovo resistiu / chocou mais! 🐣🎉';
             } else {
-                res.innerText = 'Você Perdeu! 😢';
+                res.innerText = 'Você Perdeu! O ovo quebrou! 🍳😢';
             }
         }
     </script>
